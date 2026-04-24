@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planta – AI Plant Disease Detection</title>
+  <meta name="description" content="Detect plant diseases instantly by uploading a leaf image. Planta uses AI to diagnose and recommend treatment for 38+ crop diseases." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  
+  <style>
+    /* Crop Selector Styles */
+    .plant-selector {
+      margin-bottom: 2rem;
+      text-align: center;
+      animation: slide-in 0.5s ease forwards;
+    }
+    .plant-selector label {
+      color: #a0aec0;
+      font-size: 0.95rem;
+      margin-right: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .plant-selector select {
+      background-color: rgba(26, 32, 44, 0.8);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+    .plant-selector select:hover, .plant-selector select:focus {
+      border-color: #4ade80;
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.15);
+    }
+    .plant-selector select option {
+      background-color: #1a202c;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="navbar" class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2C8 2 3 7 3 13c0 3.5 1.6 6.6 4.1 8.7L8 24h12l.9-2.3C23.4 19.6 25 16.5 25 13c0-6-5-11-11-11z" fill="#4ade80"/>
+          <path d="M14 6c-1 3-3 5-3 8 0 2.2 1.3 4 3 4s3-1.8 3-4c0-3-2-5-3-8z" fill="#166534"/>
+        </svg>
+      </div>
+      <span class="nav-title">Planta</span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="nav-link active">Home</a></li>
+      <li><a href="#detect" class="nav-link">Detect</a></li>
+      <li><a href="#treatment" class="nav-link">Treatment</a></li>
+      <li><a href="#insights" class="nav-link">Insights</a></li>
+      <li>
+        <button class="nav-link nav-history-btn" id="historyNavBtn" onclick="toggleHistoryDrawer()" aria-label="Detection History">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          History
+          <span class="history-badge" id="historyBadge" style="display:none">0</span>
+        </button>
+      </li>
+      <li><a href="dashboard.html" class="nav-link nav-dashboard-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <section id="home" class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+
+    <div class="particles" id="particles"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Plant Diagnostics
+      </div>
+      <h1 class="hero-title">
+        Welcome To
+        <br/>
+        <span class="hero-title-accent">Planta</span>
+      </h1>
+      <p class="hero-subtitle">AI-Powered Crop Disease Detection</p>
+      <p class="hero-description">
+        Detect Plant Disease by Just Uploading The Image of a Leaf<br/>
+        &amp; get Result within Seconds
+      </p>
+      <div class="hero-actions">
+        <a href="#detect" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Detect Disease
+        </a>
+        <a href="dashboard.html" class="btn btn-ghost">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Farmer Dashboard
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <span class="stat-num">38+</span>
+          <span class="stat-label">Diseases</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-card">
+          <span class="stat-num">99%</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-card">
+          <span class="stat-num">&lt;5s</span>
+          <span class="stat-label">Results</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <span>Scroll to Detect</span>
+      <div class="scroll-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="detect" class="detect-section">
+    <div class="section-header">
+      <div class="section-tag">Step 01</div>
+      <h2 class="section-title">Diagnose Your Plant</h2>
+      <p class="section-sub">Upload a clear image of the affected leaf and let our AI do the rest.</p>
+    </div>
+
+    <div class="plant-selector">
+      <label for="plant-dropdown">Select Crop (Optional):</label>
+      <select id="plant-dropdown">
+        <option value="Auto">🧠 Auto-Detect (Search All)</option>
+        <option value="Apple">Apple</option>
+        <option value="Blueberry">Blueberry</option>
+        <option value="Cherry">Cherry</option>
+        <option value="Corn">Corn</option>
+        <option value="Grape">Grape</option>
+        <option value="Peach">Peach</option>
+        <option value="Pepper, bell">Pepper</option>
+        <option value="Potato">Potato</option>
+        <option value="Raspberry">Raspberry</option>
+        <option value="Soybean">Soybean</option>
+        <option value="Squash">Squash</option>
+        <option value="Strawberry">Strawberry</option>
+        <option value="Tomato">Tomato</option>
+      </select>
+    </div>
+
+    <div class="detect-container">
+
+      <div class="glass-card upload-panel">
+        <h3 class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload from Device
+        </h3>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/*" hidden />
+          <div class="upload-icon-wrap">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4-4 4 4"/></svg>
+          </div>
+          <p class="upload-title">Drag &amp; drop your image here</p>
+          <p class="upload-sub">or</p>
+          <button class="btn btn-upload" id="browseBtn">Browse Files</button>
+          <p class="upload-hint">JPG, PNG, WEBP · Max 10MB</p>
+        </div>
+        <div class="preview-wrap" id="previewWrap" style="display:none">
+          <img id="previewImg" class="preview-img" alt="Uploaded leaf" />
+          <button class="remove-btn" id="removeBtn">✕ Remove</button>
+        </div>
+      </div>
+
+      <div class="or-divider">
+        <div class="or-line"></div>
+        <span class="or-text">OR</span>
+        <div class="or-line"></div>
+      </div>
+
+      <div class="glass-card camera-panel" id="esp32Panel">
+        <h3 class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4M3.5 3.5a13 13 0 0 0 0 17M20.5 3.5a13 13 0 0 1 0 17"/></svg>
+          ESP-32 IP Camera
+        </h3>
+        <div class="camera-zone" id="esp32Zone">
+          <div class="camera-placeholder" id="esp32Placeholder">
+            <div class="cam-icon-pulse">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4M3.5 3.5a13 13 0 0 0 0 17M20.5 3.5a13 13 0 0 1 0 17"/></svg>
+            </div>
+            <p style="margin-top:10px;font-size:0.85rem;opacity:0.7">Streams from <code style="font-size:0.75rem;color:#4ade80">10.161.93.232</code></p>
+          </div>
+        </div>
+        <div class="camera-controls">
+          <button class="btn btn-camera" id="esp32CaptureBtn" onclick="handleESP32Capture()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4M3.5 3.5a13 13 0 0 0 0 17M20.5 3.5a13 13 0 0 1 0 17"/></svg>
+            Capture from ESP-32
+          </button>
+        </div>
+      </div>
+
+      <div class="or-divider">
+        <div class="or-line"></div>
+        <span class="or-text">OR</span>
+        <div class="or-line"></div>
+      </div>
+
+      <div class="glass-card camera-panel">
+        <h3 class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Use Camera
+        </h3>
+        <div class="camera-zone" id="cameraZone">
+          <video id="cameraFeed" class="camera-feed" autoplay playsinline style="display:none"></video>
+          <canvas id="cameraCanvas" style="display:none"></canvas>
+          <img id="capturedImg" class="preview-img" style="display:none" alt="Captured leaf" />
+          <div class="camera-placeholder" id="cameraPlaceholder">
+            <div class="cam-icon-pulse">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <p>Click below to activate camera</p>
+          </div>
+        </div>
+        <div class="camera-controls" id="cameraControls">
+          <button class="btn btn-camera" id="openCamBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Open Camera
+          </button>
+          <button class="btn btn-capture" id="captureBtn" style="display:none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+            Capture
+          </button>
+          <button class="btn btn-retake" id="retakeBtn" style="display:none">↺ Retake</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="analyze-wrap">
+      <button class="btn btn-analyze" id="analyzeBtn" disabled>
+        <span class="analyze-spinner" id="analyzeSpinner" style="display:none"></span>
+        <svg id="analyzeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.04Z"/></svg>
+        Analyze Plant
+      </button>
+    </div>
+
+    <div class="result-card glass-card" id="resultCard" style="display:none">
+      <div class="result-header">
+        <div class="result-icon">🔬</div>
+        <div>
+          <h3 class="result-title">Diagnosis Complete</h3>
+          <p class="result-sub">AI Analysis Result</p>
+        </div>
+        <div class="result-confidence" id="resultConfidence">–</div>
+      </div>
+      <div class="result-body">
+        <div class="result-disease-tag" id="resultDisease">Awaiting analysis…</div>
+        <p class="result-description" id="resultDesc">Upload a leaf image and click Analyze to get your diagnosis.</p>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-sm" onclick="document.getElementById('treatment').scrollIntoView({behavior:'smooth'})">View Treatment ↓</button>
+        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('insights').scrollIntoView({behavior:'smooth'})">Learn More ↓</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="treatment" class="treatment-section">
+    <div class="section-header light">
+      <div class="section-tag">Step 02</div>
+      <h2 class="section-title">Treatment &amp; Prevention</h2>
+      <p class="section-sub">Expert-recommended remedies populated after disease detection.</p>
+    </div>
+
+    <div class="treatment-grid">
+      <div class="treat-card glass-card">
+        <div class="treat-icon pesticide-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3h6l1 4H8L9 3z"/><path d="M8 7v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7"/><path d="M10 12h4"/><path d="M12 10v4"/></svg>
+        </div>
+        <h3 class="treat-title">Pesticides</h3>
+        <p class="treat-sub">Chemical Control</p>
+        <ul class="treat-list" id="pesticideList">
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot"></span>
+            <div>
+              <strong>Mancozeb 75% WP</strong>
+              <p>Broad-spectrum fungicide for early blight control – 2.5g/L water.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot"></span>
+            <div>
+              <strong>Copper Oxychloride</strong>
+              <p>Preventive fungicide, apply before monsoon onset.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot"></span>
+            <div>
+              <strong>Chlorothalonil</strong>
+              <p>Contact fungicide for a broad range of foliage diseases.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="treat-api-note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Data will be fetched via API after detection
+        </div>
+      </div>
+
+      <div class="treat-card glass-card featured-treat">
+        <div class="treat-icon fertilizer-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2a10 10 0 0 1 10 10c0 5.5-4.5 10-10 10S2 17.5 2 12a10 10 0 0 1 10-10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <h3 class="treat-title">Fertilizers</h3>
+        <p class="treat-sub">Nutritional Support</p>
+        <ul class="treat-list" id="fertilizerList">
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#facc15"></span>
+            <div>
+              <strong>NPK 19:19:19</strong>
+              <p>Balanced nutrient formula to boost immune response in stressed plants.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#facc15"></span>
+            <div>
+              <strong>Potassium Silicate</strong>
+              <p>Strengthens cell walls, reduces susceptibility to fungal entry.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#facc15"></span>
+            <div>
+              <strong>Calcium Nitrate</strong>
+              <p>Prevents tip burn and improves overall plant vigor.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="treat-api-note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Data will be fetched via API after detection
+        </div>
+      </div>
+
+      <div class="treat-card glass-card">
+        <div class="treat-icon bio-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22V12"/><path d="M12 12C12 7 6 4 6 4s1 5 6 8"/><path d="M12 12c0-5 6-8 6-8s-1 5-6 8"/></svg>
+        </div>
+        <h3 class="treat-title">Biopesticides</h3>
+        <p class="treat-sub">Organic Solutions</p>
+        <ul class="treat-list" id="biopesticideList">
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#34d399"></span>
+            <div>
+              <strong>Trichoderma viride</strong>
+              <p>Soil biocontrol agent that suppresses root-rot pathogens.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#34d399"></span>
+            <div>
+              <strong>Bacillus subtilis</strong>
+              <p>Foliar biocontrol effective against powdery mildew & gray mold.</p>
+            </div>
+          </li>
+          <li class="treat-item placeholder-item">
+            <span class="treat-dot" style="background:#34d399"></span>
+            <div>
+              <strong>Neem Oil (5000 PPM)</strong>
+              <p>Natural repellent and fungicide for integrated pest management.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="treat-api-note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Data will be fetched via API after detection
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="insights" class="insights-section">
+    <div class="section-header">
+      <div class="section-tag">Step 03</div>
+      <h2 class="section-title">Know Your Enemy</h2>
+      <p class="section-sub">Deep educational insights powered by Wikipedia, curated for your detected disease.</p>
+    </div>
+
+    <div class="insights-container glass-card" id="wikiCard">
+      <div class="wiki-loading-state" id="wikiPlaceholder">
+        <div class="wiki-icon-wrap">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Educational Insights Await</h3>
+        <p>Detect a disease first and we'll fetch detailed Wikipedia information about the pathogen, its lifecycle, affected crops, and global distribution.</p>
+        <div class="wiki-fake-loader">
+          <div class="fake-bar" style="width:65%"></div>
+          <div class="fake-bar" style="width:80%"></div>
+          <div class="fake-bar" style="width:45%"></div>
+          <div class="fake-bar" style="width:72%"></div>
+        </div>
+      </div>
+
+      <div class="wiki-content" id="wikiContent" style="display:none">
+        <div class="wiki-layout">
+          <div class="wiki-image-col">
+            <div class="wiki-img-wrap">
+              <img id="wikiImage" src="" alt="Disease image" class="wiki-img" />
+              <div class="wiki-img-caption" id="wikiCaption"></div>
+            </div>
+            <div class="wiki-quick-facts" id="wikiQuickFacts"></div>
+          </div>
+          <div class="wiki-text-col">
+            <div class="wiki-title-row">
+              <h3 id="wikiTitle" class="wiki-title"></h3>
+              <span class="wiki-source-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Wikipedia
+              </span>
+            </div>
+            <div class="wiki-description" id="wikiDesc"></div>
+            <div class="wiki-links">
+              <a id="wikiReadMore" href="#" target="_blank" rel="noopener" class="btn btn-sm">
+                Read Full Article →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2C8 2 3 7 3 13c0 3.5 1.6 6.6 4.1 8.7L8 24h12l.9-2.3C23.4 19.6 25 16.5 25 13c0-6-5-11-11-11z" fill="#4ade80"/>
+            <path d="M14 6c-1 3-3 5-3 8 0 2.2 1.3 4 3 4s3-1.8 3-4c0-3-2-5-3-8z" fill="#166534"/>
+          </svg>
+        </div>
+        <span>Planta</span>
+      </div>
+      <p class="footer-copy">© 2026 Planta · AI Plant Disease Detection · All rights reserved</p>
+    </div>
+  </footer>
+
+  <div class="history-overlay" id="historyOverlay" onclick="toggleHistoryDrawer()"></div>
+
+  <aside class="history-drawer" id="historyDrawer" aria-label="Detection History">
+    <div class="history-drawer-header">
+      <div class="history-drawer-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Session History
+      </div>
+      <div class="history-drawer-actions">
+        <button class="history-clear-btn" id="historyClearBtn" onclick="clearHistory()" title="Clear all history">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Clear
+        </button>
+        <button class="history-close-btn" onclick="toggleHistoryDrawer()" aria-label="Close history">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="history-drawer-body" id="historyList">
+      <div class="history-empty" id="historyEmpty">
+        <div class="history-empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <p>No detections yet</p>
+        <span>Upload a leaf image and analyse it to see your history here.</span>
+      </div>
+    </div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>

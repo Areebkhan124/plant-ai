@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Dashboard – Planta</title>
+  <meta name="description" content="Planta Farmer Dashboard – monitor crop health, recent detections, disease trends, and field statistics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Dashboard-specific extras */
+    .weather-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .weather-item {
+      background: var(--bg-raised);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .weather-icon {
+      font-size: 1.6rem;
+    }
+    .weather-val {
+      font-family: var(--f-head);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--tx-1);
+    }
+    .weather-lbl {
+      font-size: 0.7rem;
+      color: var(--tx-3);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .tip-card {
+      background: var(--bg-raised);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 1.4rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+    .tip-card:hover { border-color: rgba(255,255,255,0.12); }
+    .tip-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .tip-title {
+      font-family: var(--f-head);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--tx-1);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .tip-desc {
+      font-size: 0.8rem;
+      color: var(--tx-2);
+      line-height: 1.65;
+    }
+    .field-map {
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      height: 180px;
+      border: 1px dashed rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--tx-3);
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .field-map::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.015) 24px, rgba(255,255,255,0.015) 25px),
+        repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255,255,255,0.015) 24px, rgba(255,255,255,0.015) 25px);
+    }
+    .field-pin {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--em-400);
+      box-shadow: 0 0 8px var(--em-400);
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .sidebar-logo .nav-title {
+      font-family: var(--f-head);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--tx-1);
+    }
+    .sidebar-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--r-sm);
+      font-size: 0.8rem;
+      color: var(--tx-3);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-top: 1rem;
+      transition: all 0.2s;
+    }
+    .sidebar-back:hover { color: var(--tx-1); border-color: rgba(255,255,255,0.12); }
+    @media(max-width: 900px) {
+      .weather-strip { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width: 640px) {
+      .weather-strip { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <!-- NAVBAR (same as main) -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2C8 2 3 7 3 13c0 3.5 1.6 6.6 4.1 8.7L8 24h12l.9-2.3C23.4 19.6 25 16.5 25 13c0-6-5-11-11-11z" fill="#4ade80"/>
+          <path d="M14 6c-1 3-3 5-3 8 0 2.2 1.3 4 3 4s3-1.8 3-4c0-3-2-5-3-8z" fill="#166534"/>
+        </svg>
+      </div>
+      <span class="nav-title">Patho Plant</span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#home" class="nav-link">Home</a></li>
+      <li><a href="index.html#detect" class="nav-link">Detect</a></li>
+      <li><a href="index.html#treatment" class="nav-link">Treatment</a></li>
+      <li><a href="index.html#insights" class="nav-link">Insights</a></li>
+      <li><a href="dashboard.html" class="nav-link nav-dashboard-btn active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar" id="dashSidebar">
+    <div class="sidebar-logo">
+      <div class="nav-logo">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2C8 2 3 7 3 13c0 3.5 1.6 6.6 4.1 8.7L8 24h12l.9-2.3C23.4 19.6 25 16.5 25 13c0-6-5-11-11-11z" fill="#4ade80"/>
+          <path d="M14 6c-1 3-3 5-3 8 0 2.2 1.3 4 3 4s3-1.8 3-4c0-3-2-5-3-8z" fill="#166534"/>
+        </svg>
+      </div>
+      <span class="nav-title">Patho Plant</span>
+    </div>
+
+    <p class="dash-sidebar-header">Main Menu</p>
+
+    <nav>
+      <a href="#overview" class="dash-nav-item active" id="nav-overview">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <a href="#detections" class="dash-nav-item" id="nav-detections">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Detections
+      </a>
+      <a href="#fields" class="dash-nav-item" id="nav-fields">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        My Fields
+      </a>
+      <a href="#tips" class="dash-nav-item" id="nav-tips">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12"/><path d="M12 12C12 7 6 4 6 4s1 5 6 8"/><path d="M12 12c0-5 6-8 6-8s-1 5-6 8"/></svg>
+        Crop Tips
+      </a>
+      <a href="#weather" class="dash-nav-item" id="nav-weather">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+        Weather
+      </a>
+    </nav>
+
+    <p class="dash-sidebar-header" style="margin-top: 1.5rem;">Account</p>
+    <nav>
+      <a href="#" class="dash-nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+      <a href="#" class="dash-nav-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M12 2a10 10 0 0 1 0 20"/></svg>
+        Settings
+      </a>
+    </nav>
+
+    <a href="index.html" class="sidebar-back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to Main Site
+    </a>
+  </aside>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="dash-main">
+
+    <!-- Header -->
+    <div class="dash-header">
+      <div class="dash-greeting">
+        <h2 id="dashGreeting">Good Morning, Farmer 🌿</h2>
+        <p>Here's your crop health overview for today.</p>
+      </div>
+      <div class="dash-date" id="dashDate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Loading date…
+      </div>
+    </div>
+
+    <!-- KPI Row -->
+    <section id="overview">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2)">🌱</div>
+          <div class="kpi-value" id="kpi-scans" data-target="127">0</div>
+          <div class="kpi-label">Total Scans</div>
+          <div class="kpi-change up">↑ 12%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2)">🦠</div>
+          <div class="kpi-value" id="kpi-diseases" data-target="34">0</div>
+          <div class="kpi-label">Diseases Found</div>
+          <div class="kpi-change down">↑ 5%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2)">✅</div>
+          <div class="kpi-value" id="kpi-healthy" data-target="88" style="color:var(--em-400)">0%</div>
+          <div class="kpi-label">Healthy Rate</div>
+          <div class="kpi-change up">↑ 3%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.2)">🌾</div>
+          <div class="kpi-value" id="kpi-fields" data-target="6">0</div>
+          <div class="kpi-label">Active Fields</div>
+          <div class="kpi-change up">+ 1 new</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weather Strip -->
+    <section id="weather">
+      <div class="weather-strip">
+        <div class="weather-item">
+          <div class="weather-icon">🌡️</div>
+          <div>
+            <div class="weather-val">28°C</div>
+            <div class="weather-lbl">Temperature</div>
+          </div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">💧</div>
+          <div>
+            <div class="weather-val">67%</div>
+            <div class="weather-lbl">Humidity</div>
+          </div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">🌬️</div>
+          <div>
+            <div class="weather-val">12 km/h</div>
+            <div class="weather-lbl">Wind Speed</div>
+          </div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">🌧️</div>
+          <div>
+            <div class="weather-val">40%</div>
+            <div class="weather-lbl">Rain Chance</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main dash grid: Chart + Detection table -->
+    <section id="detections">
+      <div class="dash-grid">
+
+        <!-- Detection Trend -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <span class="dash-card-title">Weekly Detection Trend</span>
+            <a href="#" class="dash-card-action">View All →</a>
+          </div>
+          <div class="chart-bars" id="weekChart">
+            <!-- Generated by JS -->
+          </div>
+
+          <!-- Recent Detections Table -->
+          <div style="margin-top:1.75rem">
+            <div class="dash-card-header" style="margin-bottom:0.75rem">
+              <span class="dash-card-title">Recent Detections</span>
+            </div>
+            <table class="detection-table">
+              <thead>
+                <tr>
+                  <th>Disease</th>
+                  <th>Crop</th>
+                  <th>Severity</th>
+                  <th>Date</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody id="recentDetections">
+                <!-- JS-generated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right column: Health ring + Field map + Tips -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+          <!-- Crop Health Ring -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <span class="dash-card-title">Crop Health Index</span>
+            </div>
+            <div class="health-circle">
+              <svg class="circle-svg" width="120" height="120" viewBox="0 0 120 120">
+                <circle class="circle-bg" cx="60" cy="60" r="50" stroke-width="10"/>
+                <circle class="circle-fill" cx="60" cy="60" r="50" stroke-width="10"
+                  stroke-dasharray="314"
+                  stroke-dashoffset="314"
+                  id="healthCircle"/>
+                <text x="60" y="55" text-anchor="middle" class="circle-text" font-size="22" transform="rotate(90,60,60)">88%</text>
+                <text x="60" y="72" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(90,60,60)">HEALTHY</text>
+              </svg>
+              <div class="health-labels">
+                <div class="health-dot"><div class="dot" style="background:var(--em-400)"></div>Healthy (88%)</div>
+                <div class="health-dot"><div class="dot" style="background:var(--am-400)"></div>At Risk (8%)</div>
+                <div class="health-dot"><div class="dot" style="background:var(--rose-400)"></div>Diseased (4%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Field Map Placeholder -->
+          <div class="dash-card" id="fields">
+            <div class="dash-card-header">
+              <span class="dash-card-title">Field Overview</span>
+              <a href="#" class="dash-card-action">Manage →</a>
+            </div>
+            <div class="field-map">
+              <div class="field-pin" style="top:30%;left:35%"></div>
+              <div class="field-pin" style="top:55%;left:60%;background:var(--am-400);box-shadow:0 0 8px var(--am-400)"></div>
+              <div class="field-pin" style="top:70%;left:25%;background:var(--rose-400);box-shadow:0 0 8px var(--rose-400)"></div>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--tx-3);position:relative;z-index:1"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              <span style="position:relative;z-index:1">Field map — GPS integration coming soon</span>
+            </div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+              <span style="font-size:0.75rem;display:flex;align-items:center;gap:5px;color:var(--tx-3)">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--em-400);display:inline-block"></span>Healthy field
+              </span>
+              <span style="font-size:0.75rem;display:flex;align-items:center;gap:5px;color:var(--tx-3)">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--am-400);display:inline-block"></span>Needs attention
+              </span>
+              <span style="font-size:0.75rem;display:flex;align-items:center;gap:5px;color:var(--tx-3)">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--rose-400);display:inline-block"></span>Diseased
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Crop Tips -->
+    <section id="tips">
+      <div class="dash-card" style="margin-bottom:2rem">
+        <div class="dash-card-header">
+          <span class="dash-card-title">🌿 Today's Crop Tips</span>
+        </div>
+        <div id="tipsList">
+          <div class="tip-card">
+            <div class="tip-icon">💡</div>
+            <div>
+              <div class="tip-title">Optimal Spray Window</div>
+              <div class="tip-desc">Best spraying time is between 6–8 AM or 5–7 PM to avoid evaporation and leaf burn. Humidity at 67% today is favorable for fungicide adhesion.</div>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tip-icon">🌡️</div>
+            <div>
+              <div class="tip-title">High Temperature Advisory</div>
+              <div class="tip-desc">At 28°C, watch for heat stress on tomatoes. Consider mulching and light irrigation in the afternoon. Avoid nitrogen-heavy fertilizers on hot days.</div>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tip-icon">🌧️</div>
+            <div>
+              <div class="tip-title">Rain Forecast — Fungal Alert</div>
+              <div class="tip-desc">40% rain probability increases early blight risk. Apply preventive copper-based spray today before rain arrives. Check lower leaves daily.</div>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tip-icon">🪲</div>
+            <div>
+              <div class="tip-title">Pest Pressure Index: Moderate</div>
+              <div class="tip-desc">Aphid population rises with humidity above 60%. Set yellow sticky traps and inspect growing tips. Release Chrysoperla carnea as biocontrol.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── Navbar scroll
+    const navbar = document.getElementById('navbar');
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 20);
+    });
+    hamburger?.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+    // ── Greeting & date
+    const now = new Date();
+    const hour = now.getHours();
+    const greetWord = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
+    document.getElementById('dashGreeting').textContent = `Good ${greetWord}, Farmer 🌿`;
+    document.getElementById('dashDate').innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      ${now.toLocaleDateString('en-IN', { weekday:'long', day:'2-digit', month:'long', year:'numeric' })}
+    `;
+
+    // ── Animated counters
+    function animateCounter(el, target, suffix = '') {
+      let current = 0;
+      const step = Math.ceil(target / 60);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current + suffix;
+        if (current >= target) clearInterval(timer);
+      }, 20);
+    }
+
+    setTimeout(() => {
+      animateCounter(document.getElementById('kpi-scans'), 127);
+      animateCounter(document.getElementById('kpi-diseases'), 34);
+      animateCounter(document.getElementById('kpi-healthy'), 88, '%');
+      animateCounter(document.getElementById('kpi-fields'), 6);
+
+      // Animate health circle (88%)
+      const circle = document.getElementById('healthCircle');
+      const circumference = 2 * Math.PI * 50;
+      const offset = circumference - (0.88 * circumference);
+      circle.style.transition = 'stroke-dashoffset 1.8s ease';
+      circle.style.strokeDashoffset = offset;
+    }, 300);
+
+    // ── Weekly chart
+    const weekData = [
+      { label: 'Mon', value: 40 },
+      { label: 'Tue', value: 75 },
+      { label: 'Wed', value: 55 },
+      { label: 'Thu', value: 90 },
+      { label: 'Fri', value: 60 },
+      { label: 'Sat', value: 35 },
+      { label: 'Sun', value: 20 },
+    ];
+    const chart = document.getElementById('weekChart');
+    weekData.forEach(d => {
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      col.innerHTML = `
+        <div class="bar-fill" style="height:0%;--h:${d.value}%" id="bar-${d.label}"></div>
+        <span class="bar-label">${d.label}</span>
+      `;
+      chart.appendChild(col);
+    });
+    setTimeout(() => {
+      weekData.forEach(d => {
+        const bar = document.getElementById(`bar-${d.label}`);
+        if (bar) { bar.style.transition = 'height 1s ease'; bar.style.height = d.value + '%'; }
+      });
+    }, 500);
+
+    // ── Recent Detections
+    const detections = [
+      { disease: 'Tomato Early Blight',  crop: 'Tomato',  severity: 'high', date: '08 Apr 2025', conf: '94.2%' },
+      { disease: 'Powdery Mildew',       crop: 'Grapes',  severity: 'med',  date: '07 Apr 2025', conf: '87.5%' },
+      { disease: 'Healthy Leaf',         crop: 'Pepper',  severity: 'low',  date: '06 Apr 2025', conf: '97.8%' },
+      { disease: 'Late Blight',          crop: 'Potato',  severity: 'high', date: '05 Apr 2025', conf: '91.1%' },
+      { disease: 'Bacterial Spot',       crop: 'Tomato',  severity: 'med',  date: '04 Apr 2025', conf: '83.6%' },
+    ];
+    const tbody = document.getElementById('recentDetections');
+    const badgeClass = { high:'badge-high', med:'badge-med', low:'badge-low' };
+    const severityLabel = { high:'High', med:'Medium', low:'Healthy' };
+    detections.forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:600">${d.disease}</td>
+        <td>${d.crop}</td>
+        <td><span class="disease-badge ${badgeClass[d.severity]}">${severityLabel[d.severity]}</span></td>
+        <td>${d.date}</td>
+        <td style="font-family:var(--f-mono);color:var(--em-400)">${d.conf}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // ── Sidebar active state
+    const sideNav = document.querySelectorAll('.dash-nav-item[href^="#"]');
+    const sections = document.querySelectorAll('section[id]');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY + 200 >= s.offsetTop) current = s.id;
+      });
+      sideNav.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${current}`);
+      });
+    });
+  </script>
+</body>
+</html>
